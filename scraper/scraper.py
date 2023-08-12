@@ -32,11 +32,12 @@ class Scraper :
 
     def get_scraper_config(self) :
         try: # Get config form file
-            with open('config.json', 'r') as config:
+            with open('config.json', 'r') as config_file:
                 #TODO verbose
-                self._output_folder_path = config['output-folder-path']
-                self._output_to_csv = config['output-to-csv']
-                self._output_to_json = config['output-to-json']
+                config = json.load(config_file)
+                self._output_folder_path = config['output_folder_path']
+                self._output_to_csv = config['output_to_csv']
+                self._output_to_json = config['output_to_json']
 
         except IOError:
             print("Error: config.json not found. Generating a new file with default values.")
