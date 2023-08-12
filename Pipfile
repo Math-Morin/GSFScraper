@@ -8,6 +8,7 @@ requests = "*"
 beautifulsoup4 = "*"
 selenium = "*"
 lxml = "*"
+pandas = "*"
 
 [dev-packages]
 
