@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 from scraper.scraper import Scraper
-from UI.UI import UI
+from UI import UI
 
 
 
@@ -10,5 +10,5 @@ from UI.UI import UI
 #TODO: short/long desc
 
 if __name__ == "__main__":
-    ui = UI()
-    ui.main_menu()
+    main_menu = UI.MainMenu()
+    main_menu.display()

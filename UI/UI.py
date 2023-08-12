@@ -1,75 +1,129 @@
 #!/usr/bin/env python3
 
+from abc import ABC, abstractmethod
 import json
 import math
 import pathlib
 from scraper.scraper import Scraper
 
-TITLE = "Garage Sales Finder Scraper"
 
-class UI:
+class UI(ABC):
 
     def __init__(self):
-        self._options = {
-            '0' : "Help",
-            '1' : "Select city from list",
-            '2' : "Enter city name(s)",
-            '3' : "Customize config",
-        }
-        self._NB_OPTIONS = len(self._options)
-        self._main_menu = self.build_main_menu()
+        self._options = {}
+        self._title = ""
+        self._menu = ""
+        self._selectables = []
 
-
-    def build_main_menu(self):
+    def _build(self):
         options = []
-        max_len = len(TITLE)
-        for k,v in self._options.items():
-            option = k + ' : ' + v
+        max_len = len(self._title)
+        for k, v in self._options.items():
+            option = f"({k}) {v}"
             new_len = len(option)
             if new_len > max_len:
                 max_len = new_len
             options.append(option)
 
-        menu = []
-        menu.append((max_len+4) * '*')
+        menu = [(max_len + 4) * '*']
+        spaces_to_add = max_len - len(self._title)
+        menu.append(
+            '* ' + math.floor(spaces_to_add / 2) * ' ' + self._title + math.ceil(spaces_to_add / 2) * ' ' + ' *')
 
-        spaces_to_add = max_len - len(TITLE)
-        menu.append('* ' + math.floor(spaces_to_add/2) * ' ' + TITLE + math.ceil(spaces_to_add/2) * ' ' + ' *')
-
-        menu.append((max_len+4) * '*')
+        menu.append((max_len + 4) * '*')
         for o in options:
             spaces_to_add = max_len - len(o)
             menu.append('* ' + o + spaces_to_add * ' ' + ' *')
-        menu.append((max_len+4) * '*')
+        menu.append((max_len + 4) * '*')
 
         return menu
 
+    def display(self):
+        for l in self._menu:
+            print(l)
 
-    def customize_config(self):
-        try: # Get config form file
+        self._process_choice(input("Your choice? "))
+
+    def _build_options(self):
+        options = {}
+        i = 0
+        for s in self._selectables:
+            options[i] = s
+            i += 1
+        return options
+
+    @abstractmethod
+    def _process_choice(self, choice):
+        pass
+
+
+class MainMenu(UI):
+    def __init__(self):
+        super().__init__()
+        self._title = "Garage Sales Finder Scraper"
+        self._selectables = [
+            "Help",
+            "Enter single location",
+            "Customize config",
+        ]
+        self._options = self._build_options()
+        self._menu = self._build()
+
+    def _process_choice(self, choice):
+        if choice == '0':
+            print(0)
+        elif choice == '1':
+            city = input("Which city? ")
+            state = input("Which state? ")
+            scraper = Scraper()
+            scraper.fetch_sales_from(city, state)
+        elif choice == '2':
+            ConfigMenu().display()
+        else:
+            print("Invalid choice.")
+
+
+class ConfigMenu(UI):
+
+    def _process_choice(self, choice):
+        pass
+
+    def __init__(self):
+        super().__init__()
+        self._selectables = self._get_selectables()
+        self._options = self._build_options()
+        self._title = "Configuration"
+        self._menu = self._build()
+
+    def _get_selectables(self):
+        try:  # Get config form file
             with open('config.json', 'r') as config_file:
-                #TODO verbose
-                print("Here is the actual configuration:\n")
+                # TODO verbose
+                selectables = []
+                max_key_len = 0
                 config = json.load(config_file)
+                for k, v in config.items():
+                    selectable = f"{k} : {v}"
+                    pos = selectable.find(":")
+                    if pos > max_key_len:
+                        max_key_len = pos
+                    selectables.append(selectable)
 
-                i = 0
-                for k,v in config.items():
-                    print(f"({i}) {k} : {v}")
-                    i += 1
+                for i, s in enumerate(selectables):
+                    pos = s.find(":")
+                    if pos < max_key_len:
+                        selectables[i] = s[:pos] + (max_key_len - pos) * ' ' + s[pos:]
 
-                print(f"({i}) Return to main menu")
-                choice = input("Your choice? ")
-
-
+                return selectables
 
         except IOError:
             print("Error: config.json not found. Generating a new file with default values.")
-            try: # Generate default config file
+            try:  # Generate default config file
                 with open('config.json', 'w') as config_file:
                     config = {
-                        'output_folder_path' : 'output',
-                        'output_to_csv'      : 'True',
-                        'output_to_json'     : 'True'
+                        'output_folder_path': 'output',
+                        'output_to_csv': 'True',
+                        'output_to_json': 'True'
                     }
                     json.dump(config, config_file, sort_keys=True, indent=4, ensure_ascii=False)
 
@@ -77,26 +131,4 @@ class UI:
                 print("Error: could not generate default config file.")
                 answer = input("Try again (y/n) ? ")
                 if answer.strip().lower() == 'y':
-                    self.customize_config()
-
-
-
-    def main_menu(self):
-        for l in self._main_menu:
-            print(l)
-
-        choice = input("Your choice? ")
-
-        if choice == '0':
-            print(0)
-        elif choice == '1':
-            print(1)
-        elif choice == '2':
-            city = input("Which city? ")
-            state = input("Which state? ")
-            scraper = Scraper()
-            scraper.fetch_sales_from(city, state)
-        elif choice == '3':
-            self.customize_config()
-        else:
-            print(4)
+                    self._get_selectables()
