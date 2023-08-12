@@ -17,11 +17,12 @@ intro_menu = """
 
 def main(argv) :
     #TODO: use argsparse library
-    #TODO: ajout options: Path to driver
+    #TODO: ajout options: Path to driver, path to output, retirer doublons toggle,
     if len(argv) <= 1 or argv[1] not in range(0, NB_OPTS):
         print(intro_menu)
 
-    choice = input("""Please select an option from above.""")
+    # Menu
+    choice = input("Please select an option from above.")
     if choice == "0" :
         print(0)
     elif choice == "1" :
