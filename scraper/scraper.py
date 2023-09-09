@@ -32,16 +32,32 @@ def output_folder():
 
     return output_folder
 
-def single_search(city, state):
+def manual_search():
+    print("*** Single Search ***")
+    print("NOTE : An empty answer will return to the main menu.")
+    city = input("Which city? ").strip()
+    if city == '':
+        return
+    state = input("Which state? ").strip()
+    if state == '':
+        return
     scraper = Scraper()
     scraper.fetch_sales_from(city, state, output_folder())
+    return 1
 
-def search_from_file(file):
-    scraper = Scraper()
-    output_folder_path = output_folder()
+def search_from_file():
+    print("*** Search From List ***")
+    print("NOTE : An empty answer will return to the main menu.")
+    input_file = input("Name of input file (must be in input folder)? : ").strip()
+
+    if input_file == '':
+        return
 
     try:
-        with open(pathlib.Path('input', file), 'r') as location_list:
+        with open(pathlib.Path('input', input_file), 'r') as location_list:
+            scraper = Scraper()
+            output_folder_path = output_folder()
+
             lines = location_list.readlines()
             line_no = 0
             pattern = re.compile("^[^,]*,[^,]*$")
@@ -63,7 +79,9 @@ def search_from_file(file):
                 state = location[1].strip()
                 scraper.fetch_sales_from(city, state, output_folder_path)
     except IOError:
-        print(f"Cannot find file named : {file}")
+        print(f"Cannot find file named : {input_file}")
+
+    return 1
 
 
 class Scraper:
@@ -82,6 +100,9 @@ class Scraper:
 
     def fetch_sales_from(self, city, state, output_folder_path):
         location = city + ', ' + state
+        msg = f'[{strftime("%H:%M:%S", localtime())}] STARTED Scraping for location : {location}'
+        print(msg)
+        print_to_log(output_folder_path, msg)
 
         with webdriver.Firefox(options=self._firefox_options) as driver:
             driver.get(self._GSF_URL)
@@ -139,3 +160,6 @@ class Scraper:
             if self.config.json['output_to_excel'].lower().strip() == "true":
                 DF.to_excel(str(output_path) + '.xlsx')
 
+            msg = f'[{strftime("%H:%M:%S", localtime())}] COMPLETED Scraping for location : {location}'
+            print(msg)
+            print_to_log(output_folder_path, msg)
