@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import time
 
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
@@ -8,14 +9,61 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from bs4 import BeautifulSoup as BS
-from datetime import datetime
+from config.config import Config
+from time import localtime, strftime
+from utils.utils import print_to_log
+
 import json
 import os
 import pandas as pd
 import pathlib
 import re
-import requests
-import time
+
+
+def output_folder():
+    unique_name_folder = strftime("%Y-%m-%d %H-%M-%S", localtime())
+    output_folder = pathlib.Path('output').joinpath(unique_name_folder)
+    if not output_folder.exists():
+        print(f"The output files will be located in the folder : \"{str(output_folder)}\".")
+        try:
+            os.makedirs(output_folder)
+        except OSError:
+            raise
+
+    return output_folder
+
+def single_search(city, state):
+    scraper = Scraper()
+    scraper.fetch_sales_from(city, state, output_folder())
+
+def search_from_file(file):
+    scraper = Scraper()
+    output_folder_path = output_folder()
+
+    try:
+        with open(pathlib.Path('input', file), 'r') as location_list:
+            lines = location_list.readlines()
+            line_no = 0
+            pattern = re.compile("^[^,]*,[^,]*$")
+            for line in lines:
+                line_no += 1
+                line = line.strip()
+
+                if line == '' or line[0] == '#':
+                    continue
+
+                if not pattern.match(line):
+                    msg = f"Input \"{line}\" on line {line_no} does not respect format : city, state"
+                    print_to_log(output_folder_path, msg)
+                    print(msg)
+                    continue
+
+                location = line.split(',')
+                city = location[0].strip()
+                state = location[1].strip()
+                scraper.fetch_sales_from(city, state, output_folder_path)
+    except IOError:
+        print(f"Cannot find file named : {file}")
 
 
 class Scraper:
@@ -26,88 +74,38 @@ class Scraper:
         self._firefox_options.add_argument("-headless")
         self._firefox_options.page_load_strategy = "eager"
 
-        # Scraper options
+        # Scraper config
         self._GSF_URL = "https://garagesalefinder.com/yard-sales/"
 
-        # Customizable config
-        self.get_scraper_config()
+        # User config
+        self.config = Config()
 
-    def get_scraper_config(self):
-        try:  # Get config form file
-            with open('config.json', 'r') as config_file:
-                # TODO verbose
-                config = json.load(config_file)
-                self._output_folder_path = config['output_folder_path']
-                self._output_to_csv = config['output_to_csv']
-                self._output_to_json = config['output_to_json']
-
-        except IOError:
-            print("Error: config.json not found. Generating a new file with default values.")
-            try:  # Generate default config file
-                with open('config.json', 'w') as config_file:
-                    config = {
-                        'output_folder_path': 'output',
-                        'output_to_csv': 'True',
-                        'output_to_json': 'True'
-                    }
-                    json.dump(config, config_file, sort_keys=True, indent=4, ensure_ascii=False)
-
-                # Set self to default values
-                self._output_folder_path = ''
-                self._output_to_csv = True
-                self._output_to_json = True
-
-            except IOError:
-                print("Error: could not generate default config file.")
-
-    def set_scraper_config(self, new_config):
-        try:
-            with open('config.json', 'rw') as config_file:
-                # TODO verbose, print changes
-                json.dump(new_config, config_file, sort_keys=True, indent=4, ensure_ascii=False)
-        except IOError:
-            print("Error: config.json not found. Using default values.")
-
-    # def fetch_states() :
-
-    #     with webdriver.Firefox(options=firefox_options) as driver :
-    #         driver.get(GSF_URL)
-    #         print(driver.page_source)
-
-    def fetch_sales_from(self, city, state):
+    def fetch_sales_from(self, city, state, output_folder_path):
         location = city + ', ' + state
-
-        path = pathlib.Path(self._output_folder_path)
-        if not path.exists():
-            a = "x"
-            while a not in "yn":
-                a = input(f"The \"{str(path)}\" directory does not exist. Create it (y/n)? ").strip().lower()
-
-            if a == 'y':
-                try:
-                    os.makedirs(path)
-                except OSError:
-                    raise
-
-            else:
-                print("Output files will be created in local project folder.")
-                path = ''
 
         with webdriver.Firefox(options=self._firefox_options) as driver:
             driver.get(self._GSF_URL)
 
             # Send location to search box
-            searchbox = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "cityZipSearch")))
-            searchbox.send_keys(location)
-            searchbox.send_keys(Keys.RETURN)
-            time.sleep(5)  # TODO find better way to handle load time
+            try:
+                element_located = EC.presence_of_element_located((By.NAME, "cityZipSearch"))
+                searchbox = WebDriverWait(driver, 10).until(element_located)
+                searchbox.send_keys(location)
+                searchbox.send_keys(Keys.RETURN)
+                time.sleep(5)
+            except TimeoutError:
+                msg = f"Timed out while waiting for page to load for location : {location}"
+                print_to_log(output_folder_path, msg)
+                print(msg)
 
             # Parse html
             soup = BS(driver.page_source.encode("utf-8"), "lxml")
             sales = soup.find_all("div", id=re.compile("record"))
 
             if not sales:
-                print(f"No search result for city: {city} ; state: {state}")
+                msg = f"No search result for city: {city} ; state: {state}"
+                print(msg)
+                print_to_log(output_folder_path, msg)
                 return
 
             # Gather data
@@ -132,7 +130,12 @@ class Scraper:
             DF.columns = ['sale-id', 'address', 'lat', 'lon', 'date-from', 'date-to', 'title', 'desc']
 
             # Print to files
-            file_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + " " + location
-            path = pathlib.PurePath(path, pathlib.Path(file_name))
-            DF.to_json(str(path) + '.json')
-            DF.to_csv(str(path) + '.csv')
+            file_name = strftime("%Y-%m-%d %H-%M-%S", localtime()) + " " + location
+            output_path = pathlib.PurePath(output_folder_path, pathlib.Path(file_name))
+            if self.config.json['output_to_csv'].lower().strip() == "true":
+                DF.to_csv(str(output_path) + '.csv')
+            if self.config.json['output_to_json'].lower().strip() == "true":
+                DF.to_json(str(output_path) + '.json')
+            if self.config.json['output_to_excel'].lower().strip() == "true":
+                DF.to_excel(str(output_path) + '.xlsx')
+

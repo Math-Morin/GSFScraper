@@ -1,5 +1,5 @@
 {
-    "output_folder_path": "output",
-    "output_to_csv": "True",
-    "output_to_json": "True"
+    "output_to_csv": "False",
+    "output_to_excel": "True",
+    "output_to_json": "False"
 }
