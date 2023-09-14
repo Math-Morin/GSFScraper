@@ -1,0 +1,12 @@
+# All lines beginning with a '#' character are comments that will be ignored when reading the list.
+# The ',' is used as a separator between the city name and the state. All lines must contain one and only one ',' character.
+
+# Major cities
+new york, new york
+los angeles, california
+seattle,washington
+detroit , michigan
+
+# Minor cities
+Boulder, Colorado
+Waterbury, Vermont
