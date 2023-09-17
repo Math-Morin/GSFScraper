@@ -1,5 +1,6 @@
 {
-    "output_to_csv": "False",
-    "output_to_excel": "True",
-    "output_to_json": "False"
+    "load time allowed": 5,
+    "output to csv": "false",
+    "output to excel": "true",
+    "output to json": "false"
 }
