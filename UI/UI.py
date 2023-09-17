@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 import math
 import os
-from scraper.scraper import manual_search, search_from_file
+from scraper.scraper import menu_single_search, menu_search_from_file
 
 
 class UI(ABC):
@@ -79,9 +79,9 @@ class MainMenu(UI):
         elif choice == '1':
             print("help")
         elif choice == '2':
-            return manual_search()
+            return menu_single_search()
         elif choice == '3':
-            return search_from_file()
+            return menu_search_from_file()
         else:
             print("Invalid choice.")
 

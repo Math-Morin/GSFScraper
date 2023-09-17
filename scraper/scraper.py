@@ -9,7 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from bs4 import BeautifulSoup as BS
-from config.config import Config
+from config.config import Config, DEFAULT_TO_CSV, DEFAULT_TO_JSON, DEFAULT_TO_EXCEL, DEFAULT_LOAD_TIME_ALLOWED
 from time import localtime, strftime
 from utils.utils import print_to_log
 
@@ -22,39 +22,23 @@ import re
 
 def output_folder():
     unique_name_folder = strftime("%Y-%m-%d %H-%M-%S", localtime())
-    output_folder = pathlib.Path('output').joinpath(unique_name_folder)
-    if not output_folder.exists():
-        print(f"The output files will be located in the folder : \"{str(output_folder)}\".")
+    folder_path = pathlib.Path('output').joinpath(unique_name_folder)
+    if not folder_path.exists():
+        print(f"The output files will be located in the folder : \"{str(folder_path)}\".")
         try:
-            os.makedirs(output_folder)
+            os.makedirs(folder_path)
         except OSError:
             raise
 
-    return output_folder
+    return folder_path
 
-def manual_search():
-    msg = ('*** Single Search ***\n'
-    'NOTE : An empty answer will return to the main menu.\n')
-    print(msg)
-    city = input("Which city? ").strip()
-    if city == '':
-        return 'main menu'
-    state = input("Which state? ").strip()
-    if state == '':
-        return 'main menu'
+
+def single_search(city, state):
     scraper = Scraper()
-    scraper.fetch_sales_from(city, state, output_folder())
-    return 'success'
+    return scraper.fetch_sales_from(city, state)
 
-def search_from_file():
-    msg = ('*** Search From List ***\n'
-           'NOTE : An empty answer will return to the main menu.\n')
-    print(msg)
-    input_file = input("Name of input file (must be in input folder)? : ").strip()
 
-    if input_file == '':
-        return 'main menu'
-
+def file_search(input_file):
     try:
         with open(pathlib.Path('input', input_file), 'r') as location_list:
             scraper = Scraper()
@@ -71,7 +55,8 @@ def search_from_file():
                     continue
 
                 if not pattern.match(line):
-                    msg = f"Input \"{line}\" on line {line_no} does not respect format : city, state"
+                    msg = (f"Input \"{line}\" on line {line_no}"
+                           f"does not respect format : city, state. It has been skipped.")
                     print_to_log(output_folder_path, msg)
                     print(msg)
                     continue
@@ -79,11 +64,37 @@ def search_from_file():
                 location = line.split(',')
                 city = location[0].strip()
                 state = location[1].strip()
-                scraper.fetch_sales_from(city, state, output_folder_path)
+                scraper.fetch_sales_from(city, state)
     except IOError:
         print(f"Cannot find file named : {input_file}")
+        return 'failed'
 
     return 'success'
+
+
+def menu_single_search():
+    msg = ('*** Single Search ***\n'
+           'NOTE : An empty answer will return to the main menu.\n')
+    print(msg)
+    city = input("Which city? ").strip()
+    if city == '':
+        return 'main menu'
+    state = input("Which state? ").strip()
+    if state == '':
+        return 'main menu'
+    return single_search(city, state)
+
+
+def menu_search_from_file():
+    msg = ('*** Search From List ***\n'
+           'NOTE : An empty answer will return to the main menu.\n')
+    print(msg)
+    input_file = input("Name of input file (must be in input folder)? : ").strip()
+
+    if input_file == '':
+        return 'main menu'
+
+    return file_search(input_file)
 
 
 class Scraper:
@@ -96,15 +107,87 @@ class Scraper:
 
         # Scraper config
         self._GSF_URL = "https://garagesalefinder.com/yard-sales/"
+        self.output_folder_path = output_folder()
 
         # User config
-        self.config = Config()
+        self.to_csv = DEFAULT_TO_CSV
+        self.to_json = DEFAULT_TO_JSON
+        self.to_excel = DEFAULT_TO_EXCEL
+        self.sleeptime = DEFAULT_LOAD_TIME_ALLOWED
+        self.get_config()
 
-    def fetch_sales_from(self, city, state, output_folder_path):
+    def get_config(self):
+        config = Config()
+        key = ''
+
+        def get_bool_value(k, default_value):
+            val_in = config.json[k]
+            val_out = val_in.lower().strip() if type(val_in) is str else None
+            val_out = True if val_out == 'true' else False if val_out == 'false' else None
+            if val_out is None:
+                raise ValueError(f"Error in config.json: value '{val_in}' of key '{k}' is invalid. "
+                                 f"Must be either 'true' or 'false'. Using default value of {default_value}.")
+            return val_out
+
+        try:
+            key = 'output to csv'
+            self.to_csv = get_bool_value(key, DEFAULT_TO_CSV)
+        except KeyError:
+            msg = f"Error in config.json: key '{key}' not found. Using default value of '{self.to_csv}.'"
+            print(msg)
+            print_to_log(self.output_folder_path, msg)
+        except ValueError as valerr:
+            print(valerr)
+            print_to_log(self.output_folder_path, repr(valerr))
+
+        try:
+            key = 'output to json'
+            self.to_json = get_bool_value(key, DEFAULT_TO_JSON)
+        except KeyError:
+            msg = f"Error in config.json: key '{key}' not found. Using default value of '{self.to_json}.'"
+            print(msg)
+            print_to_log(self.output_folder_path, msg)
+        except ValueError as valerr:
+            print(valerr)
+            print_to_log(self.output_folder_path, repr(valerr))
+
+        try:
+            key = 'output to excel'
+            self.to_excel = get_bool_value(key, DEFAULT_TO_EXCEL)
+        except KeyError:
+            msg = f"Error in config.json: key '{key}' not found. Using default value of '{self.to_excel}.'"
+            print(msg)
+            print_to_log(self.output_folder_path, msg)
+        except ValueError as valerr:
+            print(valerr)
+            print_to_log(self.output_folder_path, repr(valerr))
+
+        try:
+            key = 'load time allowed'
+            value = config.json[key]
+            if type(value) is not int:
+                raise ValueError(f"Error in config.json: value '{value}' of key '{key}' is invalid. "
+                                 f"Must be a number. Using default value of {self.sleeptime}.")
+            self.sleeptime = value
+        except KeyError:
+            msg = f"Error in config.json: key '{key}' not found. Using default value of '{self.sleeptime}.'"
+            print(msg)
+            print_to_log(self.output_folder_path, msg)
+        except ValueError as valerr:
+            print(valerr)
+            print_to_log(self.output_folder_path, repr(valerr))
+
+        msg = "Files that will be generated :"
+        msg += " .csv" if self.to_csv else ""
+        msg += " .json" if self.to_json else ""
+        msg += " .xlsx" if self.to_excel else ""
+        print(msg)
+
+    def fetch_sales_from(self, city, state):
         location = city + ', ' + state
         msg = f'[{strftime("%H:%M:%S", localtime())}] STARTED Scraping for location : {location}'
         print(msg)
-        print_to_log(output_folder_path, msg)
+        print_to_log(self.output_folder_path, msg)
 
         with webdriver.Firefox(options=self._firefox_options) as driver:
             driver.get(self._GSF_URL)
@@ -115,10 +198,10 @@ class Scraper:
                 searchbox = WebDriverWait(driver, 10).until(element_located)
                 searchbox.send_keys(location)
                 searchbox.send_keys(Keys.RETURN)
-                time.sleep(5)
+                time.sleep(self.sleeptime)
             except TimeoutError:
                 msg = f"Timed out while waiting for page to load for location : {location}"
-                print_to_log(output_folder_path, msg)
+                print_to_log(self.output_folder_path, msg)
                 print(msg)
 
             # Parse html
@@ -128,8 +211,8 @@ class Scraper:
             if not sales:
                 msg = f"No search result for city: {city} ; state: {state}"
                 print(msg)
-                print_to_log(output_folder_path, msg)
-                return
+                print_to_log(self.output_folder_path, msg)
+                return 'no result'
 
             # Gather data
             data = []
@@ -154,14 +237,17 @@ class Scraper:
 
             # Print to files
             file_name = strftime("%Y-%m-%d %H-%M-%S", localtime()) + " " + location
-            output_path = pathlib.PurePath(output_folder_path, pathlib.Path(file_name))
-            if self.config.json['output_to_csv'].lower().strip() == "true":
+            output_path = pathlib.PurePath(self.output_folder_path, pathlib.Path(file_name))
+
+            if self.to_csv:
                 DF.to_csv(str(output_path) + '.csv')
-            if self.config.json['output_to_json'].lower().strip() == "true":
+            if self.to_json:
                 DF.to_json(str(output_path) + '.json')
-            if self.config.json['output_to_excel'].lower().strip() == "true":
+            if self.to_excel:
                 DF.to_excel(str(output_path) + '.xlsx')
 
             msg = f'[{strftime("%H:%M:%S", localtime())}] COMPLETED Scraping for location : {location}'
             print(msg)
-            print_to_log(output_folder_path, msg)
+            print_to_log(self.output_folder_path, msg)
+
+            return 'success'
