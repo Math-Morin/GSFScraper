@@ -33,25 +33,27 @@ def output_folder():
     return output_folder
 
 def manual_search():
-    print("*** Single Search ***")
-    print("NOTE : An empty answer will return to the main menu.")
+    msg = ('*** Single Search ***\n'
+    'NOTE : An empty answer will return to the main menu.\n')
+    print(msg)
     city = input("Which city? ").strip()
     if city == '':
-        return
+        return 'main menu'
     state = input("Which state? ").strip()
     if state == '':
-        return
+        return 'main menu'
     scraper = Scraper()
     scraper.fetch_sales_from(city, state, output_folder())
-    return 1
+    return 'success'
 
 def search_from_file():
-    print("*** Search From List ***")
-    print("NOTE : An empty answer will return to the main menu.")
+    msg = ('*** Search From List ***\n'
+           'NOTE : An empty answer will return to the main menu.\n')
+    print(msg)
     input_file = input("Name of input file (must be in input folder)? : ").strip()
 
     if input_file == '':
-        return
+        return 'main menu'
 
     try:
         with open(pathlib.Path('input', input_file), 'r') as location_list:
@@ -81,7 +83,7 @@ def search_from_file():
     except IOError:
         print(f"Cannot find file named : {input_file}")
 
-    return 1
+    return 'success'
 
 
 class Scraper:

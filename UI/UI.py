@@ -14,17 +14,17 @@ class UI(ABC):
         self._menu = ""
 
     def display(self):
-        status = 0
+        status = None
         while True:
             os.system('cls' if os.name == 'nt' else 'clear')
-            if status == 1:
+            if status == 'success':
                 print('Last scraping session completed successfully. See log file for more info.')
                 print()
             for line in self._menu:
                 print(line)
 
             status = self._process_choice(input("Your choice? "))
-            if status == 0:
+            if status == 'exit':
                 os.system('cls' if os.name == 'nt' else 'clear')
                 return
 
@@ -75,7 +75,7 @@ class MainMenu(UI):
 
     def _process_choice(self, choice):
         if choice == '0':
-            return 0
+            return 'exit'
         elif choice == '1':
             print("help")
         elif choice == '2':
