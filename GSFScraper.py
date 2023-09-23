@@ -12,9 +12,9 @@ if __name__ == "__main__":
                      'Files used in list mode must be located in the input folder'))
     scrape_method = parser.add_mutually_exclusive_group()
     scrape_method.add_argument('-s', '--single', nargs=2, metavar=('CITY', 'STATE'), action='store', type=str,
-                               help='Scrape for the given location. Example: python3 GSFinder.py -s "new york" "new york"')
+                               help='Scrape for the given location. Example: python3 GSFScraper.py -s "new york" "new york"')
     scrape_method.add_argument('-l', '--list', metavar='FILE_NAME', action='store', type=str,
-                               help='Scrape all listed locations in the given file. Example: python3 GSFinder.py -l citylist.txt')
+                               help='Scrape all listed locations in the given file. Example: python3 GSFScraper.py -l example.txt')
     args = parser.parse_args()
 
     if args.single:
