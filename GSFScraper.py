@@ -6,7 +6,7 @@ from UI import UI
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        prog='Garage Sale Finder Scraper',
+        prog='GSFScraper.py',
         description=('For interactive mode, launch without any argument. '
                      'Arguments which have a space character in them need to be put between double quotation marks, e.g. "new york". '
                      'Files used in list mode must be located in the input folder'))
