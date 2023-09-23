@@ -49,9 +49,12 @@ def file_search(input_file):
             pattern = re.compile("^[^,]*,[^,]*$")
             for line in lines:
                 line_no += 1
+
+                if '#' in line:
+                    line = line.split('#')[0]
                 line = line.strip()
 
-                if line == '' or line[0] == '#':
+                if line == '':
                     continue
 
                 if not pattern.match(line):
@@ -76,10 +79,10 @@ def menu_single_search():
     msg = ('*** Single Search ***\n'
            'NOTE : An empty answer will return to the main menu.\n')
     print(msg)
-    city = input("Which city? ").strip()
+    city = input("Which city? : ").strip()
     if city == '':
         return 'main menu'
-    state = input("Which state? ").strip()
+    state = input("Which state? : ").strip()
     if state == '':
         return 'main menu'
     return single_search(city, state)
@@ -89,7 +92,7 @@ def menu_search_from_file():
     msg = ('*** Search From List ***\n'
            'NOTE : An empty answer will return to the main menu.\n')
     print(msg)
-    input_file = input("Name of input file (must be in input folder)? : ").strip()
+    input_file = input("Name of input file? (must be in input folder) : ").strip()
 
     if input_file == '':
         return 'main menu'

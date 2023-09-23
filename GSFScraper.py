@@ -5,12 +5,16 @@ from scraper.scraper import single_search, file_search
 from UI import UI
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser('Garage Sale Finder Scraper')
+    parser = argparse.ArgumentParser(
+        prog='Garage Sale Finder Scraper',
+        description=('For interactive mode, launch without any argument. '
+                     'Arguments which have a space character in them need to be put between double quotation marks, e.g. "new york". '
+                     'Files used in list mode must be located in the input folder'))
     scrape_method = parser.add_mutually_exclusive_group()
     scrape_method.add_argument('-s', '--single', nargs=2, metavar=('CITY', 'STATE'), action='store', type=str,
-                               help='Scrape for the given location')
+                               help='Scrape for the given location. Example: python3 GSFinder.py -s "new york" "new york"')
     scrape_method.add_argument('-l', '--list', metavar='FILE_NAME', action='store', type=str,
-                               help='Scrape all listed locations in the given file')
+                               help='Scrape all listed locations in the given file. Example: python3 GSFinder.py -l citylist.txt')
     args = parser.parse_args()
 
     if args.single:

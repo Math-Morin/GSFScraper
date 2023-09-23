@@ -66,7 +66,6 @@ class MainMenu(UI):
         title = "Garage Sales Finder Scraper"
         options = [
             "Quit",
-            "Help",
             "Enter single location",
             "Multiple locations from file",
         ]
@@ -77,10 +76,8 @@ class MainMenu(UI):
         if choice == '0':
             return 'exit'
         elif choice == '1':
-            print("help")
-        elif choice == '2':
             return menu_single_search()
-        elif choice == '3':
+        elif choice == '2':
             return menu_search_from_file()
         else:
             print("Invalid choice.")
