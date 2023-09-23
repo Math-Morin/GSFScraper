@@ -3,40 +3,46 @@
 GSFScraper is a simple scraper that helps find garage sales in the US.
 
 ## Installation
-Requirements:
-- Python 3.10
-- pipenv
 
-Procedure:
+**Procedure:**
 - Download and extract the [latest release](https://github.com/Math-Morin/GSFScraper/releases) of the source code.
-- In the project folder, run ```pipenv install``` This will install all dependencies.
-- To be able to launch the app, set the virtual environment with ```pipenv shell``` This must be done before each session of scraping.
-- The app can now be launched. Run ```python3 GSFScraper.py -h``` for help.
+- In the project folder, run ```pip install -r requirements.txt```. This will install all dependencies globally.
+- The app can now be launched.
+
+**If you do not want to install the dependencies globally, here is an alternative procedure using a virtual environment:**
+- Download and extract the [latest release](https://github.com/Math-Morin/GSFScraper/releases) of the source code.
+- In the project folder, run ```pipenv install```. This will install all dependencies in a virtual environment.
+- Set the virtual environment with ```pipenv shell```. This must be done before each session of scraping.
+- The app can now be launched.
 
 ## Execution
-The virtual environment must be properly set up before each session of scraping with ```pipenv shell``` The app can then be launched.
+Note: if using a virtual environment, you must run ```pipenv shell``` from inside the project folder before launching the app.
 
 ### Interactive mode
-Without any argument, i.e. ```python3 GSFScraper.py``` the app lauches in interactive mode. Prompts will ask you to choose between 'single location' and 'multiple locations from list'.
+Without any argument, i.e. ```python GSFScraper.py``` the app lauches in interactive mode. Prompts will ask you to choose between 'single location' and 'multiple locations from list'.
 Then, simply enter either the location or the name of the file conaining the list of locations.
 
 ### Arguments
 ```GSFScraper.py [ -h ] [ -s CITY STATE | -l FILE_NAME ]```
+
 To facilitate automation, arguments can be passed to the app.
-Run ```python3 GSFScraper.py -h``` for help with arguments.
+
+Run ```python GSFScraper.py -h``` for help with arguments.
 
 #### Single location
 With either ```-s``` or ```--single``` given as an argument, the app will directly scrape for the given location.
 Note: location with spaces in them must be surrounded with double quotation marks.
+
 Examples: 
-- ```python3 GSFScraper.py -s "new york" "new york"```
-- ```python3 GSFScraper.py --single "los angeles" california```
+- ```python GSFScraper.py -s "new york" "new york"```
+- ```python GSFScraper.py --single "los angeles" california```
 
 #### Multiple locations from file
 With either ```-l``` or ```--list``` given as an argument, the app will directly scrape for the given locations listed in the given file.
+
 Examples: 
-- ```python3 GSFScraper.py -l example.txt```
-- ```python3 GSFScraper.py --list example.txt```
+- ```python GSFScraper.py -l example.txt```
+- ```python GSFScraper.py --list example.txt```
 
 ## Locations list file
 A text file listing locations can be added to the 'input' folder which is located in the project folder.
@@ -44,7 +50,7 @@ The format of the list must be one location per line, with each location describ
 
 The app will scrape for each location. If a line does not respect this format, it will be ignored and a log entry will be added to let you know.
 
-Comments can be added to this file. Eveything comming after a '#' character will be ignored.
+Comments can be added to this file. Eveything after a '#' character will be ignored.
 
 The following is the content of example.txt located in the 'input' folder by default:
 ```
