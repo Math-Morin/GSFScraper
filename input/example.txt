@@ -1,0 +1,12 @@
+# All lines beginning with a '#' character are comments that will be ignored when reading the list.
+# A comma ',' is used as a separator between the city name and the state. All lines must contain one and only one ',' character. Otherwise, they will be ignored.
+
+# Major cities
+new york, new york # comments can also be added at the end of a line
+los angeles, california
+seattle, washington
+detroit, michigan
+
+# Minor cities
+Boulder, Colorado
+Waterbury, Vermont

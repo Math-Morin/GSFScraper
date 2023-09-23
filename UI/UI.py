@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 import math
 import os
-from scraper.scraper import manual_search, search_from_file
+from scraper.scraper import menu_single_search, menu_search_from_file
 
 
 class UI(ABC):
@@ -14,17 +14,17 @@ class UI(ABC):
         self._menu = ""
 
     def display(self):
-        status = 0
+        status = None
         while True:
             os.system('cls' if os.name == 'nt' else 'clear')
-            if status == 1:
+            if status == 'success':
                 print('Last scraping session completed successfully. See log file for more info.')
                 print()
             for line in self._menu:
                 print(line)
 
             status = self._process_choice(input("Your choice? "))
-            if status == 0:
+            if status == 'exit':
                 os.system('cls' if os.name == 'nt' else 'clear')
                 return
 
@@ -66,7 +66,6 @@ class MainMenu(UI):
         title = "Garage Sales Finder Scraper"
         options = [
             "Quit",
-            "Help",
             "Enter single location",
             "Multiple locations from file",
         ]
@@ -75,13 +74,11 @@ class MainMenu(UI):
 
     def _process_choice(self, choice):
         if choice == '0':
-            return 0
+            return 'exit'
         elif choice == '1':
-            print("help")
+            return menu_single_search()
         elif choice == '2':
-            return manual_search()
-        elif choice == '3':
-            return search_from_file()
+            return menu_search_from_file()
         else:
             print("Invalid choice.")
 
