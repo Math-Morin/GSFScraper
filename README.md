@@ -16,7 +16,7 @@ Requirements:
 **If you do not want to install the dependencies globally, here is an alternative procedure using a virtual environment:**
 - Download and extract the [latest release](https://github.com/Math-Morin/GSFScraper/releases) of the source code.
 - In the project folder, run ```pipenv install```. This will install all dependencies in a virtual environment.
-- Set the virtual environment with ```pipenv shell```. This must be done before launching the app.
+- Set the virtual environment with ```pipenv shell```. This must be done each time before launching the app.
 - The app can now be launched.
 
 ## Execution
