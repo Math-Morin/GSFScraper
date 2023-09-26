@@ -20,11 +20,11 @@ Requirements:
 - The app can now be launched.
 
 ## Execution
-Note: if using a virtual environment, you must run ```pipenv shell``` from inside the project folder before launching the app.
+*Note: if using a virtual environment, you must run* ```pipenv shell``` *from inside the project folder before launching the app.*
 
 ### Interactive mode
-Without any argument, i.e. ```python GSFScraper.py``` the app lauches in interactive mode. Prompts will ask you to choose between 'single location' and 'multiple locations from list'.
-Then, simply enter either the location or the name of the file conaining the list of locations.
+Without any argument, i.e. ```python GSFScraper.py``` the app launches in interactive mode. Prompts will ask you to choose between 'single location' and 'multiple locations from list'.
+Then, simply enter either the location or the name of the file containing the list of locations.
 
 ### Arguments
 ```GSFScraper.py [ -h ] [ -s CITY STATE | -l FILE_NAME ]```
@@ -35,7 +35,8 @@ Run ```python GSFScraper.py -h``` for help with arguments.
 
 #### Single location
 With either ```-s``` or ```--single``` given as an argument, the app will directly scrape for the given location.
-Note: location with spaces in them must be surrounded with double quotation marks.
+
+*Note: location with spaces in them must be surrounded with double quotation marks.*
 
 Examples: 
 - ```python GSFScraper.py -s "new york" "new york"```
@@ -92,4 +93,4 @@ The config.json file contains the few configurations available for the app. Here
 - ```output to excel``` : Whether or not to output the data to a .xlsx file
 - ```output to json``` : Whether or not to output the data to a .json file
 
-Note: if this file is deleted, a new one will be created with default values to 5 seconds and all output file types to true.
+*Note : if this file is deleted, a new one will be created with default values to 5 seconds and all output file types to true.*
