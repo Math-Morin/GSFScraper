@@ -4,7 +4,7 @@ GSFScraper is a simple scraper that helps find garage sales in the US.
 
 ## Installation
 
-Requirements:
+**Requirements:**
 - Python 3.10
 - [Mozilla Gecko Driver](https://github.com/mozilla/geckodriver/releases)
 
